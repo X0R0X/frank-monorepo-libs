@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "frank-monorepo-libs"
+license = { file = "LICENSE.md" }
+readme = "README.md"
+version = "0.1"
+description = "Frank Monorepo Libraries"
+authors = [
+    { name = "Top Monks" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "ez-lib @ git+ssh://git@github.com/X0R0X/ez-lib",
+]
+
+[project.urls]
+"Homepage" = "https://github.com:X0R0X/frank-monorepo-libs.git"
+"Repository" = "https://github.com:X0R0X/frank-monorepo-libs.git"
