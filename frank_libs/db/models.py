@@ -130,3 +130,14 @@ class CompanyModel(AbstractModel):
     is_active: Mapped[bool]
     users_update_ts: Mapped[int]
     slack_user_id:Mapped[SlackStr_80]
+
+
+class DialogueModel(AbstractModel):
+    __tablename__ = 'dialogues'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tree_id: Mapped[int]
+    user_id: Mapped[int]
+    date_started: Mapped[datetime]
+    date_finished: Mapped[datetime]
+    answers: JSON
