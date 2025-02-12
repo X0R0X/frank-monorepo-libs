@@ -11,7 +11,8 @@ SlackIdStr_9 = NewType("SlackIdStr_9", str)
 SlackStr_20 = NewType("SlackStr_20", str)
 SlackStr_80 = NewType("SlackStr_80", str)
 SlackStr_512 = NewType("SlackStr_512", str)
-DbStr_64 = NewType("SlackStr_64", str)
+DbStr_32 = NewType("DbStr_32", str)
+DbStr_64 = NewType("DbStr_64", str)
 
 
 class AbstractModel(AbstractModelHelper, DeclarativeBase):
@@ -19,9 +20,10 @@ class AbstractModel(AbstractModelHelper, DeclarativeBase):
         json_ser: JSON,
         SlackIdStr_9: String(9),
         SlackStr_20: String(20),
+        DbStr_32: String(32),
+        DbStr_64: String(64),
         SlackStr_80: String(80),
         SlackStr_512: String(512),
-        DbStr_64: String(64)
     }
 
 
@@ -121,7 +123,10 @@ class CompanyModel(AbstractModel):
     name: Mapped[DbStr_64]
     http_port: Mapped[int]
     slack_token: Mapped[DbStr_64]
+    slack_user_token: Mapped[SlackStr_80]
     slack_secret: Mapped[DbStr_64]
-    users_update_ts: Mapped[int]
+    client_id: Mapped[DbStr_32]
+    client_secret: Mapped[DbStr_32]
     is_active: Mapped[bool]
-    users_cache_ts: Mapped[int]
+    users_update_ts: Mapped[int]
+    slack_user_id:Mapped[SlackStr_80]

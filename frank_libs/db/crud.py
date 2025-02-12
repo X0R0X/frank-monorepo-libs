@@ -1,18 +1,16 @@
 from enum import Enum
-
 from ez_lib.postgres import PgSessionSingleton, mapping_result_to_list
 from ez_lib.types import json_types
-from sqlalchemy import select, update
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.functions import now
-
 from frank_libs.db.models import (
     UserModel,
     DialogueTreeModel,
     CompanyModel,
     SlackUserModel
 )
+from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.functions import now
 
 
 class UserRole(Enum):
@@ -102,11 +100,10 @@ async def fetch_user_trees(session: AsyncSession, user_id: int):
     return result.mappings().all()
 
 
-async def fetch_user_tree(
-        session: AsyncSession, tree_id: int
-) -> DialogueTreeModel | None:
-    stmt = select(DialogueTreeModel).where(DialogueTreeModel.id == tree_id)
-    return await session.scalar(stmt)
+async def fetch_user_tree(tree_id: int) -> DialogueTreeModel | None:
+    async with PgSessionSingleton.get_session() as session:
+        stmt = select(DialogueTreeModel).where(DialogueTreeModel.id == tree_id)
+        return await session.scalar(stmt)
 
 
 async def set_user_tree_published(session: AsyncSession, tree_id: int):
@@ -146,7 +143,8 @@ async def create_company_users(
     async with PgSessionSingleton.get_session() as session:
         slack_users = []
         for user_def in users_dict:
-            if not user_def['is_bot'] and not user_def['deleted']:
+            # if not user_def['is_bot'] and not user_def['deleted']:
+            if not user_def['deleted']:
                 slack_user = SlackUserModel(company_id=company_id)
                 slack_user.from_dict(user_def)
                 slack_users.append(slack_user)
@@ -173,7 +171,6 @@ async def fetch_company_users(company_id: int) -> list[SlackUserModel]:
 
 async def update_company_users(
         company_id: int,
-        cache_timestamp: int,
         current_users: dict[str, SlackUserModel],
         users_dict: list[dict[str, json_types]],
 ) -> (list[SlackUserModel], list[SlackUserModel]):
@@ -205,9 +202,15 @@ async def update_company_users(
         await session.execute(
             update(CompanyModel).where(
                 CompanyModel.id == company_id
-            ).values(users_cache_ts=cache_timestamp)
+            ).values(users_update_ts=now())
         )
 
         await session.commit()
 
         return new_users, updated_users
+
+async def create_dialogues(
+        user_ids:list[str],
+        tree_id: int,
+):
+    async with PgSessionSingleton.get_session() as session:
