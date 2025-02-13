@@ -16,7 +16,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "ez-lib @ git+ssh://git@github.com/X0R0X/ez-lib",
+    "ez-lib @ git+https://git@github.com/X0R0X/ez-lib",
 ]
 
 [project.urls]
