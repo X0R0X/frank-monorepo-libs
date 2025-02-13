@@ -1,16 +1,18 @@
 from enum import Enum
+
 from ez_lib.postgres import PgSessionSingleton, mapping_result_to_list
-from ez_lib.types import json_types
-from frank_libs.db.models import (
-    UserModel,
-    DialogueTreeModel,
-    CompanyModel,
-    SlackUserModel
-)
+from ez_lib.types import json_types, json_ser
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.functions import now
+
+from frank_libs.db.models import (
+    UserModel,
+    DialogueTreeModel,
+    CompanyModel,
+    SlackUserModel, DialogueModel
+)
 
 
 class UserRole(Enum):
@@ -209,8 +211,37 @@ async def update_company_users(
 
         return new_users, updated_users
 
+
 async def create_dialogues(
-        user_ids:list[str],
+        user_ids: list[str],
         tree_id: int,
 ):
     async with PgSessionSingleton.get_session() as session:
+        dialogue_models: list[DialogueModel] =[]
+        for uid in user_ids:
+            d = DialogueModel(
+                tree_id=tree_id,
+                user_id=uid,
+                date_started=now(),
+            )
+
+            dialogue_models.append(d)
+            session.add(d)
+
+        await session.commit()
+
+        return dialogue_models
+
+
+async def set_dialogue_finished(dialogue_db_id:int, answers: json_ser):
+    async with PgSessionSingleton.get_session() as session:
+        stmt = update(DialogueModel).where(
+            DialogueModel.id == dialogue_db_id
+        ).values(
+            answers=answers,
+            date_finished=now()
+        )
+
+        await session.execute(stmt)
+        await session.commit()
+
