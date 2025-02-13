@@ -677,10 +677,12 @@ class TreeDialogueValidator:
                     return True
 
                 visited_nodes.add(node_id)
-                for target_id in self._compact_graph_data[node_id]:
-                    if target_id not in visited_nodes:
-                        checked_path.append(target_id)
-                        queue.append((target_id, checked_path))
+                ids = self._compact_graph_data.get(node_id)
+                if ids:
+                    for target_id in ids:
+                        if target_id not in visited_nodes:
+                            checked_path.append(target_id)
+                            queue.append((target_id, checked_path))
 
         return False
 
