@@ -217,29 +217,28 @@ async def create_dialogues(
         tree_id: int,
 ):
     async with PgSessionSingleton.get_session() as session:
-        dialogue_models: list[DialogueModel] =[]
+        dms = []
         for uid in user_ids:
             d = DialogueModel(
                 tree_id=tree_id,
                 user_id=uid,
                 date_started=now(),
             )
-
-            dialogue_models.append(d)
+            dms.append(d)
             session.add(d)
 
         await session.commit()
 
-        return dialogue_models
+        return dms
 
 
-async def set_dialogue_finished(dialogue_db_id:int, answers: json_ser):
+async def set_dialogue_finished(user_id: str, tree_id, answers: json_ser):
     async with PgSessionSingleton.get_session() as session:
         stmt = update(DialogueModel).where(
-            DialogueModel.id == dialogue_db_id
-        ).values(
+            DialogueModel.tree_id == tree_id
+        ).where(DialogueModel.user_id == user_id).values(
             answers=answers,
-            date_finished=now()
+            date_finised=now()
         )
 
         await session.execute(stmt)

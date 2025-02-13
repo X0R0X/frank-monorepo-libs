@@ -103,21 +103,14 @@ class JsonAnswerSerializer:
         self._data_dict: dict | None = None
 
     @property
-    def data(self) -> str | None:
+    def data(self) -> dict | None:
         return self._data
-
-    @property
-    def data_dict(self) -> dict | None:
-        if not self._data_dict:
-            self.serialize_as_dict()
-
-        return self._data_dict
 
     def add_answer(self, node_id: int, answer: str | float | int):
         question_node = self._dialogue_tree.get_node(node_id)
         self._answers.append(JsonNode.answer_from_node(question_node, answer))
 
-    def serialize_as_dict(self):
+    def as_dict(self):
         answers = []
         for a in self._answers:
             answers.append(a.to_dict())
