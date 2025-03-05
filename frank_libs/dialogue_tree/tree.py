@@ -661,7 +661,9 @@ class TreeDialogueValidator:
 
     def _check_path_exists(self, to_node: int):
         """
-        BFS Graph Traversal.
+        BFS Graph Traversal. This might be a candidate for FFI rewrite, either
+        Rust or old school C. Average Time complexity is O(N+E) where N is
+        number of nodes and E is number of edges.
 
         :param to_node: ID of the node we end the traversal from node with id=1
         :return: True if path to Node with ID=1 is found, False otherwise
@@ -687,7 +689,10 @@ class TreeDialogueValidator:
         return False
 
     @staticmethod
-    def _get_target_ids(node: AbstractDialogueNode) -> list[int]:
+    def _get_target_ids(
+            node: AbstractDialogueNode
+    ) -> list[int | None]  | None:
+
         if isinstance(node, (ChoiceDialogueNode, QuantifiableDialogueNode)):
             return list(node.get_choices().keys())
         elif isinstance(
@@ -700,4 +705,5 @@ class TreeDialogueValidator:
         elif isinstance(node, IntervalDialogueNode):
             return [target_id for _, target_id in node.get_choices()]
         elif isinstance(node, EndDialogueNode):
-            return []
+            l: list[int] = []
+            return l
