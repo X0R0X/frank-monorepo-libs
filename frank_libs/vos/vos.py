@@ -1,5 +1,6 @@
-from ez_lib.types import json_ser
 from typing import Iterable
+
+from ez_lib.types import json_ser
 
 
 class AbstractVo:
@@ -75,8 +76,9 @@ class AbstractVo:
         """
 
         return {
-            c.key: getattr(self, c.key) for c in self.__table__.c
-            if (c.key not in self._except_fields or c.key in include)
+            c_key: getattr(self, c_key) for c_key, c in self.__dict__.items()
+            if not c_key.startswith('_') and
+               (c_key not in self._except_fields or c_key in include)
         }
 
     def _log_field_not_found(self, field_name: str):
@@ -103,6 +105,7 @@ class SlackUserVo(AbstractVo):
     def __init__(self):
         self.id: str | None = None
         self.is_bot: bool | None = None
+        self.deleted: bool | None = None
         self.team_id: str | None = None
         self.name: str | None = None
         self.color: str | None = None
