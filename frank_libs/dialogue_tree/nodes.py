@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, cast
 
+from ez_lib.types import json_types
+
 from frank_libs.vos.vos import SlackUserVo
 
 
@@ -14,9 +16,8 @@ class AnswerVerificationResult(Enum):
     TooManuArguments = 5
     SlackUserNotFound = 6
 
-    # todo instantiate, add arguments
     @staticmethod
-    def to_message(value) -> str | None:
+    def to_message(value, data: str | None = None) -> str | None:
         if value == AnswerVerificationResult.Ok:
             return None
         elif value == AnswerVerificationResult.ExpectedNumber:
@@ -28,7 +29,10 @@ class AnswerVerificationResult(Enum):
         elif value == AnswerVerificationResult.TooManuArguments:
             return "You have supplied too many arguments"
         elif value == AnswerVerificationResult.SlackUserNotFound:
-            return "Slack user not found"
+            if data:
+                return "Slack user(s) %s not found" % data
+            else:
+                return "Slack user(s) not found"
 
 
 class AbstractDialogueNode(ABC):
@@ -58,7 +62,9 @@ class AbstractDialogueNode(ABC):
         pass
 
     @abstractmethod
-    def verify_answer(self, answer: str | None) -> AnswerVerificationResult:
+    def verify_answer(
+            self, answer: str | None
+    ) -> tuple[AnswerVerificationResult, json_types]:
         pass
 
 
@@ -121,15 +127,17 @@ class ChoiceDialogueNode(AbstractDialogueNode):
         index = int(answer) - 1
         return list(self._choices.keys())[index]
 
-    def verify_answer(self, answer: str) -> AnswerVerificationResult:
+    def verify_answer(
+            self, answer: str
+    ) -> tuple[AnswerVerificationResult, json_types]:
         try:
             i = int(answer) - 1
             if i < len(self._choices.keys()):
-                return AnswerVerificationResult.Ok
+                return AnswerVerificationResult.Ok, None
             else:
-                return AnswerVerificationResult.OutOfRange
+                return AnswerVerificationResult.OutOfRange, None
         except ValueError:
-            return AnswerVerificationResult.ExpectedNumber
+            return AnswerVerificationResult.ExpectedNumber, None
 
     def get_choices(self):
         return self._choices
@@ -227,15 +235,17 @@ class QuantifiableDialogueNode(AbstractDialogueNode):
         # tree creation time, so there are no holes and this may never happen
         return -1
 
-    def verify_answer(self, answer: str) -> AnswerVerificationResult:
+    def verify_answer(
+            self, answer: str
+    ) -> tuple[AnswerVerificationResult, json_types]:
         try:
             n = float(answer)
             if self._min_value <= n <= self._max_value:
-                return AnswerVerificationResult.Ok
+                return AnswerVerificationResult.Ok, None
             else:
-                return AnswerVerificationResult.OutOfRange
+                return AnswerVerificationResult.OutOfRange, None
         except ValueError:
-            return AnswerVerificationResult.ExpectedNumber
+            return AnswerVerificationResult.ExpectedNumber, None
 
     def get_choices(self):
         return self._choices
@@ -295,15 +305,17 @@ class IntervalDialogueNode(AbstractDialogueNode):
             if n <= val:
                 return choice[1]
 
-    def verify_answer(self, answer: str) -> AnswerVerificationResult:
+    def verify_answer(
+            self, answer: str
+    ) -> tuple[AnswerVerificationResult, json_types]:
         try:
             n = float(answer)
             if self._min_value <= n <= self._max_value:
-                return AnswerVerificationResult.Ok
+                return AnswerVerificationResult.Ok, None
             else:
-                return AnswerVerificationResult.OutOfRange
+                return AnswerVerificationResult.OutOfRange, None
         except ValueError:
-            return AnswerVerificationResult.ExpectedNumber
+            return AnswerVerificationResult.ExpectedNumber, None
 
     @staticmethod
     def _get_boundaries(choices: list) -> tuple[float | None, float | None]:
@@ -352,8 +364,10 @@ class GenericQuestionDialogueNode(AbstractOneAnswerNode):
 
         return GenericQuestionDialogueNode(node_id, node_text, next_node)
 
-    def verify_answer(self, answer: str) -> AnswerVerificationResult:
-        return AnswerVerificationResult.Ok
+    def verify_answer(
+            self, answer: str
+    ) -> tuple[AnswerVerificationResult, json_types]:
+        return AnswerVerificationResult.Ok, None
 
     def __str__(self):
         return (
@@ -367,6 +381,7 @@ class SlackUsersChooseDialogueNode(AbstractOneAnswerNode, BaseInjectableNode):
 
     def __init__(self, id_: int, text: str, next_node: int | None):
         super().__init__(id_, text, next_node)
+        BaseInjectableNode.__init__(self)
 
     @staticmethod
     def from_dict(node_id: int, node_def: dict) -> AbstractDialogueNode:
@@ -378,13 +393,31 @@ class SlackUsersChooseDialogueNode(AbstractOneAnswerNode, BaseInjectableNode):
 
         return SlackUsersChooseDialogueNode(node_id, node_text, next_node)
 
-    def verify_answer(self, answer: str | None) -> AnswerVerificationResult:
-        data = cast(dict[int, SlackUserVo], self._injected_data)
-        for slack_user in data.values():
-            if answer == slack_user.profile__display_name:
-                return AnswerVerificationResult.Ok
+    def verify_answer(
+            self, answer: str | None
+    ) -> tuple[AnswerVerificationResult, json_types]:
+        user_ids = answer.split(' ')
+        unknown_users_str = ""
+        found_users: list[str] = []
 
-        return AnswerVerificationResult.SlackUserNotFound
+        users = cast(dict[str, SlackUserVo], self._injected_data)
+        for user_id in user_ids:
+            if (
+                    user_id.startswith('<@U') and
+                    user_id.endswith('>') and
+                    user_id[2:-1] in users.keys()
+            ):
+                found_users.append(user_id[2:-1])
+            else:
+                unknown_users_str += f'{user_id}, '
+
+        if len(unknown_users_str) == 0 and len(found_users) > 0:
+            return AnswerVerificationResult.Ok, found_users
+        else:
+            if len(unknown_users_str) > 0:
+                unknown_users_str = unknown_users_str[:-2]
+
+            return AnswerVerificationResult.SlackUserNotFound, unknown_users_str
 
     def __str__(self):
         return (
@@ -410,8 +443,10 @@ class EndDialogueNode(AbstractDialogueNode):
     def get_next(self, answer: str) -> int:
         return -1
 
-    def verify_answer(self, answer: str) -> AnswerVerificationResult:
-        return AnswerVerificationResult.Ok
+    def verify_answer(
+            self, answer: str
+    ) -> tuple[AnswerVerificationResult, json_types]:
+        return AnswerVerificationResult.Ok, None
 
     def __str__(self):
         return f'EndNode: \n    text: {self._text}\n'

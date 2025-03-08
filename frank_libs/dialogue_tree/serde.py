@@ -103,14 +103,11 @@ class JsonAnswerSerializer:
         self._data_dict: dict | None = None
 
     @property
-    def data(self) -> str | None:
+    def data(self) -> dict | None:
         return self._data
 
     @property
     def data_dict(self) -> dict | None:
-        if not self._data_dict:
-            self.serialize_as_dict()
-
         return self._data_dict
 
     def add_answer(self, node_id: int, answer: str | float | int):

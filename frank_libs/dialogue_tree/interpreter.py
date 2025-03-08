@@ -27,9 +27,15 @@ class AbstractInterpreter(ABC):
             else:
                 answer: str | None = None
 
-            verification_result = self._current_node.verify_answer(answer)
+            verification_result, answer_data = self._current_node.verify_answer(
+                answer
+            )
+
             if verification_result == AnswerVerificationResult.Ok:
-                self._answers.add_answer(self._current_node.id, answer)
+                if answer_data is not None:
+                    self._answers.add_answer(self._current_node.id, answer_data)
+                else:
+                    self._answers.add_answer(self._current_node.id, answer)
 
                 next_node_id = self._current_node.get_next(answer)
 
@@ -38,7 +44,9 @@ class AbstractInterpreter(ABC):
                     await self._end_dialogue()
                     break
             else:
-                msg = AnswerVerificationResult.to_message(verification_result)
+                msg = AnswerVerificationResult.to_message(
+                    verification_result, answer_data
+                )
 
                 await self._display_text(f'{msg}, please try again...\n')
 
