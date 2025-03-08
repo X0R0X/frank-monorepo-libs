@@ -1,12 +1,12 @@
 from datetime import datetime
+from typing import Any, NewType
+
 from ez_lib.postgres import AbstractModelHelper
 from ez_lib.types import json_ser
 from sqlalchemy import JSON, String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql.functions import now
-from typing import Any, NewType
 
-json_ser = NewType("json_dict", dict[str, Any])
 SlackIdStr_9 = NewType("SlackIdStr_9", str)
 SlackStr_20 = NewType("SlackStr_20", str)
 SlackStr_80 = NewType("SlackStr_80", str)
@@ -129,7 +129,7 @@ class CompanyModel(AbstractModel):
     client_secret: Mapped[DbStr_32]
     is_active: Mapped[bool]
     users_update_ts: Mapped[int]
-    slack_user_id: Mapped[SlackStr_80]
+    slack_user_id:Mapped[SlackStr_80]
 
 
 class DialogueModel(AbstractModel):
@@ -141,3 +141,4 @@ class DialogueModel(AbstractModel):
     date_started: Mapped[datetime]
     date_finished: Mapped[datetime]
     answers: Mapped[json_ser]
+    
