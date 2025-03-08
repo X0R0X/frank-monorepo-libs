@@ -16,9 +16,10 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "ez-lib @ git+ssh://git@github.com/X0R0X/ez-lib",
+    "ez-lib @ git+https://github.com/X0R0X/ez-lib",
 ]
 
 [project.urls]
 "Homepage" = "https://github.com:X0R0X/frank-monorepo-libs.git"
 "Repository" = "https://github.com:X0R0X/frank-monorepo-libs.git"
+
