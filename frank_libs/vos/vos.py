@@ -77,8 +77,9 @@ class AbstractVo:
 
         return {
             c_key: getattr(self, c_key) for c_key, c in self.__dict__.items()
-            if not c_key.startswith('_') and
-               (c_key not in self._except_fields or c_key in include)
+            if not c_key.startswith('_') and (
+                    c_key not in self._except_fields or c_key in include
+            )
         }
 
     def _log_field_not_found(self, field_name: str):
