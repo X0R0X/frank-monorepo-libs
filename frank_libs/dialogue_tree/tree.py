@@ -13,7 +13,7 @@ from frank_libs.dialogue_tree.nodes import (
     GenericQuestionDialogueNode,
     IntervalDialogueNode,
     EndDialogueNode,
-    AbstractOneAnswerNode
+    AbstractOneAnswerNode, NotificationNode, AbstractEndNode
 )
 
 
@@ -378,7 +378,13 @@ class TreeDialogueValidator:
                 reports = self._validate_one_answer_node(node)
             elif isinstance(node, IntervalDialogueNode):
                 reports = self._validate_interval_node(node)
-            elif isinstance(node, EndDialogueNode):
+            elif isinstance(
+                    node,
+                    (
+                            EndDialogueNode,
+                            NotificationNode
+                    )
+            ):
                 reports = self._validate_end_node(node)
             else:
                 # This really cannot happen (tree wouldn't be serialized in this
@@ -595,7 +601,7 @@ class TreeDialogueValidator:
 
     @staticmethod
     def _validate_end_node(
-            node: EndDialogueNode
+            node: AbstractEndNode
     ) -> list[AbstractValidationReport] | None:
         # Validate node name
         reports = []

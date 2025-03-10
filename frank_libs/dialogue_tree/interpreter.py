@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 
 from frank_libs.dialogue_tree.nodes import (
     AbstractDialogueNode,
-    EndDialogueNode,
-    AnswerVerificationResult
+    AnswerVerificationResult,
+    AbstractEndNode
 )
 from frank_libs.dialogue_tree.serde import JsonAnswerSerializer
 from frank_libs.dialogue_tree.tree import DialogueTree
@@ -22,7 +22,7 @@ class AbstractInterpreter(ABC):
 
             await self._display_text(question_text)
 
-            if not isinstance(self._current_node, EndDialogueNode):
+            if not isinstance(self._current_node, AbstractEndNode):
                 answer: str | None = await self._get_input()
             else:
                 answer: str | None = None

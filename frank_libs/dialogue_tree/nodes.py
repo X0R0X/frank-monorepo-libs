@@ -86,6 +86,20 @@ class AbstractOneAnswerNode(AbstractDialogueNode, ABC):
         return self._next_node
 
 
+class AbstractEndNode(AbstractDialogueNode, ABC):
+    def get_question(self) -> str | None:
+        return self._text
+
+    def get_next(self, answer: str) -> int:
+        return -1
+
+    def verify_answer(
+            self, answer: str
+    ) -> tuple[AnswerVerificationResult, json_types]:
+        return AnswerVerificationResult.Ok, None
+
+
+
 class BaseInjectableNode:
 
     def __init__(self):
@@ -427,26 +441,24 @@ class SlackUsersChooseDialogueNode(AbstractOneAnswerNode, BaseInjectableNode):
         )
 
 
-class EndDialogueNode(AbstractDialogueNode):
-    def __init__(self, id_: int, text: str):
-        super().__init__(id_, text)
+class NotificationNode(AbstractEndNode):
 
+    @staticmethod
+    def from_dict(node_id: int, node_def: dict) -> object:
+        node_text: str = node_def['text']
+
+        return NotificationNode(node_id, node_text)
+
+    def __str__(self):
+        return f"NotificationNode: \n    text: {self.text}\n"
+
+
+class EndDialogueNode(AbstractEndNode):
     @staticmethod
     def from_dict(node_id: int, node_def: dict) -> AbstractDialogueNode:
         node_text: str = node_def['text']
 
         return EndDialogueNode(node_id, node_text)
-
-    def get_question(self) -> str | None:
-        return f'{self._text}'
-
-    def get_next(self, answer: str) -> int:
-        return -1
-
-    def verify_answer(
-            self, answer: str
-    ) -> tuple[AnswerVerificationResult, json_types]:
-        return AnswerVerificationResult.Ok, None
 
     def __str__(self):
         return f'EndNode: \n    text: {self._text}\n'
