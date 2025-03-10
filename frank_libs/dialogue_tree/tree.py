@@ -13,7 +13,9 @@ from frank_libs.dialogue_tree.nodes import (
     GenericQuestionDialogueNode,
     IntervalDialogueNode,
     EndDialogueNode,
-    AbstractOneAnswerNode, NotificationNode, AbstractEndNode
+    AbstractOneAnswerNode,
+    NotificationNode,
+    AbstractEndNode
 )
 
 
@@ -475,11 +477,8 @@ class TreeDialogueValidator:
         last_max: float | None = None
         last_target_id: int | None = None
         invalid_target_ids = []
-        target_ids = []
         invalid_choices = []
         for target_id, choice in sorted_choices:
-            target_ids.append(target_id)
-            target_ids.append(target_id)
             if choice.min is None or choice.max is None:
                 InvalidQuantifiableNoneChoiceReport(node.id)
                 break
