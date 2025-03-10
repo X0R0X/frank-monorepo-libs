@@ -6,7 +6,8 @@ from frank_libs.dialogue_tree.nodes import AbstractDialogueNode, \
     ChoiceDialogueNode, QuantifiableDialogueNode, GenericQuestionDialogueNode, \
     SlackUsersChooseDialogueNode, IntervalDialogueNode, EndDialogueNode, \
     AbstractAnswer, ChoiceAnswer, QuantifiableAnswer, GenericAnswer, \
-    IntervalAnswer, SlackUsersAnswer, EndAnswer
+    IntervalAnswer, SlackUsersAnswer, EndAnswer, NotificationNode, \
+    NotificationAnswer
 from frank_libs.dialogue_tree.tree import DialogueTree
 
 
@@ -16,10 +17,14 @@ class JsonNode(Enum):
     GenericQuestion = "question"
     Interval = "interval"
     SlackUsers = "slack_users"
+    Notification = "notification"
     End = "end"
 
     @staticmethod
-    def node_from_def(node_id: int, node_def: dict) -> AbstractDialogueNode:
+    def node_from_def(
+            node_id: int,
+            node_def: dict
+    ) -> AbstractDialogueNode | None:
         node_id = int(node_id)
         node_type = node_def['type']
 
@@ -33,13 +38,18 @@ class JsonNode(Enum):
             return SlackUsersChooseDialogueNode.from_dict(node_id, node_def)
         elif node_type == JsonNode.Interval.value:
             return IntervalDialogueNode.from_dict(node_id, node_def)
+        elif node_type == JsonNode.Notification.value:
+            return NotificationNode.from_dict(node_id, node_def)
         elif node_type == JsonNode.End.value:
             return EndDialogueNode.from_dict(node_id, node_def)
+        else:
+            return None
 
     @staticmethod
     def answer_from_node(
-            node: AbstractDialogueNode, answer: str | float | int | None
-    ) -> AbstractAnswer:
+            node: AbstractDialogueNode,
+            answer: str | float | int | None
+    ) -> AbstractAnswer | None:
         if isinstance(node, ChoiceDialogueNode):
             return ChoiceAnswer(node.id, answer)
         elif isinstance(node, QuantifiableDialogueNode):
@@ -50,8 +60,12 @@ class JsonNode(Enum):
             return IntervalAnswer(node.id, answer)
         elif isinstance(node, SlackUsersChooseDialogueNode):
             return SlackUsersAnswer(node.id, answer)
+        elif isinstance(node, NotificationNode):
+            return NotificationAnswer(node.id, answer)
         elif isinstance(node, EndDialogueNode):
             return EndAnswer(node.id)
+        else:
+            return None
 
 
 class AbstractJsonDeserializer(ABC):
@@ -71,6 +85,7 @@ class AbstractJsonDeserializer(ABC):
             node_id = int(node_id)
             node = JsonNode.node_from_def(node_id, node_def)
             self._tree.add_node(node_id, node)
+
 
 
 class FileJsonTreeDeserializer(AbstractJsonDeserializer):

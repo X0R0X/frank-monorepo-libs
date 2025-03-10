@@ -99,7 +99,6 @@ class AbstractEndNode(AbstractDialogueNode, ABC):
         return AnswerVerificationResult.Ok, None
 
 
-
 class BaseInjectableNode:
 
     def __init__(self):
@@ -444,7 +443,7 @@ class SlackUsersChooseDialogueNode(AbstractOneAnswerNode, BaseInjectableNode):
 class NotificationNode(AbstractEndNode):
 
     @staticmethod
-    def from_dict(node_id: int, node_def: dict) -> object:
+    def from_dict(node_id: int, node_def: dict) -> AbstractDialogueNode:
         node_text: str = node_def['text']
 
         return NotificationNode(node_id, node_text)
@@ -516,6 +515,12 @@ class GenericAnswer(AbstractAnswer):
 
 
 class SlackUsersAnswer(AbstractAnswer):
+    def __init__(self, id_: int, answer: str):
+        super().__init__(id_)
+        self._answer = answer
+
+
+class NotificationAnswer(AbstractAnswer):
     def __init__(self, id_: int, answer: str):
         super().__init__(id_)
         self._answer = answer
