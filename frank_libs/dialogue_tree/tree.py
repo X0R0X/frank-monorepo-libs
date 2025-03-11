@@ -24,10 +24,20 @@ class DataInjectionRequest(Enum):
 
 
 class DialogueTree:
-    def __init__(self):
+    def __init__(self, id_:int, urgent: bool):
+        self._id = id_
+        self._urgent: bool = urgent
         self._tree: dict[int, AbstractDialogueNode] = {}
         self._validator = TreeDialogueValidator(self)
         self._present_node_types: set[type[AbstractDialogueNode]] = set()
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def urgent(self):
+        return self._urgent
 
     @property
     def requested_data_injections(self) -> list[DataInjectionRequest]:

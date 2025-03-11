@@ -55,6 +55,7 @@ class DialogueTreeModel(AbstractModel):
     publisher_id: Mapped[int]
     title: Mapped[str]
     published: Mapped[bool]
+    urgent:Mapped[bool]
     data: Mapped[json_ser]
     # data: Mapped[dict[str, Any]]
     created_at: Mapped[datetime]

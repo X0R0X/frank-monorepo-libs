@@ -70,7 +70,7 @@ class JsonNode(Enum):
 
 class AbstractJsonDeserializer(ABC):
     def __init__(self):
-        self._tree: DialogueTree = DialogueTree()
+        self._tree: DialogueTree | None = None
 
     @property
     def tree(self) -> DialogueTree | None:
@@ -80,12 +80,12 @@ class AbstractJsonDeserializer(ABC):
     def deserialize(self):
         pass
 
-    def _deserialize(self, nodes: dict[int | str, dict]):
+    def _deserialize(self, id_:int, nodes: dict[int | str, dict], urgent: bool):
+        self._tree = DialogueTree(id_,urgent)
         for node_id, node_def in nodes.items():
             node_id = int(node_id)
             node = JsonNode.node_from_def(node_id, node_def)
             self._tree.add_node(node_id, node)
-
 
 
 class FileJsonTreeDeserializer(AbstractJsonDeserializer):
@@ -97,16 +97,20 @@ class FileJsonTreeDeserializer(AbstractJsonDeserializer):
         with open(self._path) as f:
             o: dict = json.loads(f.read())
             nodes: dict = o['nodes']
-            self._deserialize(nodes)
+            self._deserialize(o['id'], nodes, o['urgent'])
 
 
 class DictJsonTreeDeserializer(AbstractJsonDeserializer):
-    def __init__(self, tree_dict: dict[int | str, dict]):
+    def __init__(
+            self, id_: int, tree_dict: dict[int | str, dict], urgent: bool
+    ):
         super().__init__()
         self._tree_dict = tree_dict
+        self._urgent = urgent
+        self._id = id_
 
     def deserialize(self):
-        self._deserialize(self._tree_dict)
+        self._deserialize(self._id, self._tree_dict, self._urgent)
 
 
 # todo not serializer, rather container with to_dict
