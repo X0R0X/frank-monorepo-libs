@@ -22,10 +22,9 @@ class AbstractInterpreter(ABC):
 
             await self._display_text(question_text)
 
+            answer: str | None = None
             if not isinstance(self._current_node, AbstractEndNode):
                 answer: str | None = await self._get_input()
-            else:
-                answer: str | None = None
 
             verification_result, answer_data = self._current_node.verify_answer(
                 answer

@@ -61,7 +61,8 @@ async def save_dialogue_tree(
         user_id: int,
         table_id: int | None,
         title: str,
-        tree_json: dict
+        tree_json: dict,
+        is_urgent: bool
 ) -> DialogueTreeModel | None:
     if table_id is not None:
         stmt = update(DialogueTreeModel).where(
@@ -69,9 +70,10 @@ async def save_dialogue_tree(
         ).values(
             data=tree_json,
             title=title,
+            urgent=is_urgent,
             last_update_at=now(),
             update_count=DialogueTreeModel.update_count + 1,
-            published=False
+            published=False,
         )
         # todo return TreeModel as well ?
         await session.execute(stmt)
@@ -80,6 +82,7 @@ async def save_dialogue_tree(
         tree = DialogueTreeModel(
             publisher_id=user_id,
             title=title,
+            urgent=is_urgent,
             published=False,
             data=tree_json,
             created_at=now(),

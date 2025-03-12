@@ -1,13 +1,20 @@
 import json
 from abc import ABC, abstractmethod
 from enum import Enum
+from typing import cast
 
-from frank_libs.dialogue_tree.nodes import AbstractDialogueNode, \
-    ChoiceDialogueNode, QuantifiableDialogueNode, GenericQuestionDialogueNode, \
-    SlackUsersChooseDialogueNode, IntervalDialogueNode, EndDialogueNode, \
-    AbstractAnswer, ChoiceAnswer, QuantifiableAnswer, GenericAnswer, \
-    IntervalAnswer, SlackUsersAnswer, EndAnswer, NotificationNode, \
-    NotificationAnswer
+from frank_libs.dialogue_tree.nodes import (
+    AbstractDialogueNode,
+    ChoiceDialogueNode,
+    QuantifiableDialogueNode,
+    GenericQuestionDialogueNode,
+    SlackUsersChooseDialogueNode,
+    IntervalDialogueNode,
+    EndDialogueNode,
+    AbstractAnswer,
+    GenericAnswer,
+    NotificationNode,
+)
 from frank_libs.dialogue_tree.tree import DialogueTree
 
 
@@ -28,20 +35,18 @@ class JsonNode(Enum):
         node_id = int(node_id)
         node_type = node_def['type']
 
-        if node_type == JsonNode.Choice.value:
-            return ChoiceDialogueNode.from_dict(node_id, node_def)
-        elif node_type == JsonNode.Quantifiable.value:
-            return QuantifiableDialogueNode.from_dict(node_id, node_def)
-        elif node_type == JsonNode.GenericQuestion.value:
-            return GenericQuestionDialogueNode.from_dict(node_id, node_def)
-        elif node_type == JsonNode.SlackUsers.value:
-            return SlackUsersChooseDialogueNode.from_dict(node_id, node_def)
-        elif node_type == JsonNode.Interval.value:
-            return IntervalDialogueNode.from_dict(node_id, node_def)
-        elif node_type == JsonNode.Notification.value:
-            return NotificationNode.from_dict(node_id, node_def)
-        elif node_type == JsonNode.End.value:
-            return EndDialogueNode.from_dict(node_id, node_def)
+        cls_map: dict[str, type[AbstractDialogueNode]] = {
+            JsonNode.Choice.value: ChoiceDialogueNode,
+            JsonNode.Quantifiable.value: QuantifiableDialogueNode,
+            JsonNode.GenericQuestion.value: GenericQuestionDialogueNode,
+            JsonNode.SlackUsers.value: SlackUsersChooseDialogueNode,
+            JsonNode.Interval.value: IntervalDialogueNode,
+            JsonNode.Notification.value: NotificationNode,
+            JsonNode.End.value: EndDialogueNode,
+        }
+        cls = cls_map.get(node_type)
+        if cls:
+            return cast(AbstractDialogueNode, cls.from_dict(node_id, node_def))
         else:
             return None
 
@@ -50,22 +55,7 @@ class JsonNode(Enum):
             node: AbstractDialogueNode,
             answer: str | float | int | None
     ) -> AbstractAnswer | None:
-        if isinstance(node, ChoiceDialogueNode):
-            return ChoiceAnswer(node.id, answer)
-        elif isinstance(node, QuantifiableDialogueNode):
-            return QuantifiableAnswer(node.id, answer)
-        elif isinstance(node, GenericQuestionDialogueNode):
-            return GenericAnswer(node.id, answer)
-        elif isinstance(node, IntervalDialogueNode):
-            return IntervalAnswer(node.id, answer)
-        elif isinstance(node, SlackUsersChooseDialogueNode):
-            return SlackUsersAnswer(node.id, answer)
-        elif isinstance(node, NotificationNode):
-            return NotificationAnswer(node.id, answer)
-        elif isinstance(node, EndDialogueNode):
-            return EndAnswer(node.id)
-        else:
-            return None
+        return GenericAnswer(node.id, answer)
 
 
 class AbstractJsonDeserializer(ABC):
@@ -80,8 +70,9 @@ class AbstractJsonDeserializer(ABC):
     def deserialize(self):
         pass
 
-    def _deserialize(self, id_:int, nodes: dict[int | str, dict], urgent: bool):
-        self._tree = DialogueTree(id_,urgent)
+    def _deserialize(self, id_: int, nodes: dict[int | str, dict],
+                     urgent: bool):
+        self._tree = DialogueTree(id_, urgent)
         for node_id, node_def in nodes.items():
             node_id = int(node_id)
             node = JsonNode.node_from_def(node_id, node_def)

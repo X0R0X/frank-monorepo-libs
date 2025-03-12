@@ -463,7 +463,6 @@ class EndDialogueNode(AbstractEndNode):
         return f'EndNode: \n    text: {self._text}\n'
 
 
-# todo do we really need this to be abstract with subclasses -> No. ?
 
 class AbstractAnswer(ABC):
     def __init__(self, id_: int):
@@ -489,43 +488,7 @@ class AbstractAnswer(ABC):
     def __str__(self) -> str:
         return f'Answer: id={self._id}, answer={self._answer}'
 
-
-class ChoiceAnswer(AbstractAnswer):
-    def __init__(self, id_: int, answer: int):
-        super().__init__(id_)
-        self._answer = answer
-
-
-class QuantifiableAnswer(AbstractAnswer):
-    def __init__(self, id_: int, answer: float):
-        super().__init__(id_)
-        self._answer = answer
-
-
-class IntervalAnswer(AbstractAnswer):
-    def __init__(self, id_: int, answer: float):
-        super().__init__(id_)
-        self._answer = answer
-
-
 class GenericAnswer(AbstractAnswer):
     def __init__(self, id_: int, answer: str):
         super().__init__(id_)
         self._answer = answer
-
-
-class SlackUsersAnswer(AbstractAnswer):
-    def __init__(self, id_: int, answer: str):
-        super().__init__(id_)
-        self._answer = answer
-
-
-class NotificationAnswer(AbstractAnswer):
-    def __init__(self, id_: int, answer: str):
-        super().__init__(id_)
-        self._answer = answer
-
-
-class EndAnswer(AbstractAnswer):
-    def __init__(self, id_: int):
-        super().__init__(id_)
