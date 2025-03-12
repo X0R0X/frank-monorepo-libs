@@ -124,7 +124,7 @@ class JsonAnswerSerializer:
         question_node = self._dialogue_tree.get_node(node_id)
         self._answers.append(JsonNode.answer_from_node(question_node, answer))
 
-    def serialize_as_dict(self):
+    def deserialize(self):
         answers = []
         for a in self._answers:
             answers.append(a.to_dict())
