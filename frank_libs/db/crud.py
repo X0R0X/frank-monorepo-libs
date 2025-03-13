@@ -1,16 +1,18 @@
 from enum import Enum
+
 from ez_lib.postgres import PgSessionSingleton, mapping_result_to_list
 from ez_lib.types import json_types, json_ser
-from frank_libs.db.models import (
-    UserModel,
-    DialogueTreeModel,
-    CompanyModel,
-    SlackUserModel, DialogueModel
-)
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.functions import now
+
+from frank_libs.db.models import (
+    UserModel,
+    DialogueTreeModel,
+    CompanyModel,
+    SlackUserModel, DialogueModel, FrozenStateModel
+)
 
 
 class UserRole(Enum):
@@ -233,13 +235,48 @@ async def create_dialogues(
         return dms
 
 
-async def set_dialogue_finished(dialogue_db_id: int, tree_id, answers: json_ser):
+async def set_dialogue_finished(dialogue_db_id: int, tree_id,
+                                answers: json_ser):
     async with PgSessionSingleton.get_session() as session:
         stmt = update(
             DialogueModel
         ).where(DialogueModel.id == dialogue_db_id).values(
             answers=answers,
             date_finished=now()
+        )
+
+        await session.execute(stmt)
+        await session.commit()
+
+
+async def create_frozen_state(state_data: json_ser):
+    async with PgSessionSingleton.get_session() as session:
+        frozen_state = FrozenStateModel(
+            date_created=now(),
+            state_data=state_data
+        )
+        session.add(frozen_state)
+        await session.commit()
+
+
+async def check_fetch_frozen_state() -> list[FrozenStateModel]:
+    async with PgSessionSingleton.get_session() as session:
+        stmt = select(FrozenStateModel).where(
+            FrozenStateModel.date_resumed == None
+        )
+        result = await session.execute(stmt)
+        l: list[FrozenStateModel] = mapping_result_to_list(
+            result, 'FrozenStateModel'
+        )
+
+        return l
+
+async def update_frozen_state_resumed(state_id:int):
+    async with PgSessionSingleton.get_session() as session:
+        stmt = update(
+            FrozenStateModel
+        ).where(FrozenStateModel.id == state_id).values(
+            date_resumed=now()
         )
 
         await session.execute(stmt)

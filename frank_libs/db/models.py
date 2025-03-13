@@ -142,4 +142,12 @@ class DialogueModel(AbstractModel):
     date_started: Mapped[datetime]
     date_finished: Mapped[datetime]
     answers: Mapped[json_ser]
-    
+
+
+class FrozenStateModel(AbstractModel):
+    __tablename__ = 'frozen_states'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date_created: Mapped[datetime]
+    date_resumed: Mapped[datetime]
+    state_data: Mapped[json_ser]
