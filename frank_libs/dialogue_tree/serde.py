@@ -130,8 +130,8 @@ class JsonAnswerSerializer:
             answers.append(a.to_dict())
 
         self._data_dict = {
-            "time_start": self._answers[0].time,
-            "time_end": self._answers[-1].time,
+            "time_start": self._answers[0].time if self._answers else -1,
+            "time_end": self._answers[-1].time if self._answers else -1,
             "answers": answers
         }
 
