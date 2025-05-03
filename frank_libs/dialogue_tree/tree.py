@@ -1,12 +1,20 @@
 from abc import ABC
-from collections import deque
 from enum import Enum
 from typing import Any, cast
 
-from frank_libs.dialogue_tree.nodes import AbstractDialogueNode, \
-    SlackUsersChooseDialogueNode, BaseInjectableNode, ChoiceDialogueNode, \
-    QuantifiableDialogueNode, GenericQuestionDialogueNode, IntervalDialogueNode, \
-    EndDialogueNode, AbstractOneAnswerNode
+from collections import deque
+
+from frank_libs.dialogue_tree.nodes import (
+    AbstractDialogueNode,
+    SlackUsersChooseDialogueNode,
+    BaseInjectableNode,
+    ChoiceDialogueNode,
+    QuantifiableDialogueNode,
+    GenericQuestionDialogueNode,
+    IntervalDialogueNode,
+    EndDialogueNode,
+    AbstractOneAnswerNode
+)
 
 
 class DataInjectionRequest(Enum):
@@ -691,7 +699,7 @@ class TreeDialogueValidator:
     @staticmethod
     def _get_target_ids(
             node: AbstractDialogueNode
-    ) -> list[int | None]  | None:
+    ) -> list[int | None] | None:
 
         if isinstance(node, (ChoiceDialogueNode, QuantifiableDialogueNode)):
             return list(node.get_choices().keys())
